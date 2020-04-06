@@ -12,7 +12,7 @@ make install
 ```
 
 ## License
-Anyone is welcome to use this code or change it to there wish
+Anyone is welcome to use this code or change it to their wish
 
 ## Author
 Lawrence Milne .aka. qawse3dr
