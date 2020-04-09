@@ -9,6 +9,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include "String.h"
 
 /*Creates a string from a char*
  *@param str the string to be turned into the String struct*
@@ -74,7 +76,7 @@ String subString(const String string, long lower, long upper){
 
   //copies string from lower to upper
   for(int i = lower; i <= upper; i++){
-    stringcatChar(subStr,charAt(string,i));
+    stringcatChar(1,subStr,charAt(string,i));
   }
 
   return subStr;
@@ -101,20 +103,23 @@ void trim(String string){
   int lower = 0;
   int upper = string->length;
   //trim front
-  for(int i = lower; i < string->length && !stringContainsChar("\n\t ",charAt(string,i)); i++){
+  //todo fix memleak
+  String whiteSpace = createString("\n\t ");
+  for(int i = lower; i < string->length && !stringContainsChar(whiteSpace,charAt(string,i)); i++){
     lower++;
   }
   //trim back
-  for(int i = upper; i >= 0 && !stringContainsChar("\n\t ",charAt(string,i)); i--){
+  for(int i = upper; i >= 0 && !stringContainsChar(whiteSpace,charAt(string,i)); i--){
     upper--;
   }
   //copies data
   String trimmedString = subString(string,lower,upper);
 
+  freeString(whiteSpace);
   //frees old data
   free(string->data);
   //new length and data
-  string->length = trimmmedString->length - lower - (string->length-upper);
+  string->length = trimmedString->length - lower - (string->length-upper);
   string->data = trimmedString->data;
 }
 
@@ -126,7 +131,7 @@ void trim(String string){
 char charAt(String string, long index){
   if(!string && index >= 0 && index <= string->length-1){
     fprintf(stderr,"charAt invalid input.\n");
-    return "\0";
+    return '\0';
   }
   return string->data[index];
 }
@@ -135,7 +140,7 @@ void setCharAt(String string,long index,char value){
     fprintf(stderr,"setCharAt invalid input.\n");
     return;
   }
-  return string->data[index] = value;
+  string->data[index] = value;
 }
 /*String cmp between string structs
  *@param string1 first string to be checked
@@ -193,12 +198,12 @@ int stringContainsC(String string, char* search){
   return contains;
 }
 int stringContainsChar(String string,char search){
-  if(!string && !string->data &&{
+  if(!string || !string->data){
     fprintf(stderr,"StringContainsChar invalid input.\n");
   }
   int contains = 0;
   for(int i = 0; i < string->length; i++){
-    if(CharAt(string,i) == search){
+    if(charAt(string,i) == search){
       contains = 1;
       break;
     }
@@ -211,7 +216,7 @@ int stringContainsChar(String string,char search){
  *@param string the string being concated too
  *@param ... the strings being added to it*/
 void stringcat(int strCount, String string, String stringArgs, ...){ //String
-  if(!string || charCount < 1){
+  if(!string || strCount < 1){
     return;
   }
 
@@ -236,8 +241,8 @@ void stringcat(int strCount, String string, String stringArgs, ...){ //String
   va_end(ap);
 
 }
-void stringcatC(int strCount, String string, String stringArgs, ...){ //char*
-  if(!string || charCount < 1){
+void stringcatC(int strCount, String string, char* stringArgs, ...){ //char*
+  if(!string || strCount < 1){
     return;
   }
   //the new length of the string
@@ -257,7 +262,7 @@ void stringcatC(int strCount, String string, String stringArgs, ...){ //char*
     //want to use j outside of the loop for placing null terminator
     int j;
     for(j = string->length; j < string->length + stringArgsLength; j++){
-      string->data[j] = stringArgs->data[j - string->length];
+      string->data[j] = stringArgs[j - string->length];
     }
     string->data[j] = '\0';
     string->length += stringArgsLength;
@@ -278,7 +283,7 @@ void stringcatChar(int charCount, String string, char charArgs, ...){ //char
   for(int i = 0; i < charCount; i++){
 
     //grabs char from function
-    charArgs = va_arg(ap, char);
+    charArgs = va_arg(ap, int);
 
     //add char
     string->data[string->length] = charArgs;
@@ -294,7 +299,7 @@ String fileToString(String fileName){
     return NULL;
   }
   String fileString = NULL;
-  FILE* fp = fopen(fileName,"r")
+  FILE* fp = fopen(getString(fileName),"r");
   if(fp){
     fileString = createString("");
     char c;
@@ -331,8 +336,8 @@ int stringEndsWith(String string, String sufix){
 }
 int stringEndsWithC(String string, char* sufix){
   //a wraper for stringContains
-  String searchString = createString(search);
-  int endsWith = stringContains(string,searchString);
+  String searchString = createString(sufix);
+  int endsWith = stringEndsWith(string,searchString);
   freeString(searchString);
   return endsWith;
 }
@@ -342,7 +347,7 @@ int stringEndsWithC(String string, char* sufix){
  *@param string being searched
  *@param prefix the value being searched for*/
 int stringStartsWith(String string, String prefix);
-int stringStartsWith(String string, char* prefix);
+int stringStartsWithC(String string, char* prefix);
 
 /*replaces a character with a new character
  *@param string hhaving characters replaced
@@ -361,7 +366,7 @@ int stringReplace(String string, char current, char new){
  *@return the string null if it failed*/
 String stringFromChar(char value){
   String string = createString("");
-  stringcatChar(string,value);
+  stringcatChar(1,string,value);
   return string;
 }
 String stringFromInt(int value){

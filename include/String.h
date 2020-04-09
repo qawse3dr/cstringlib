@@ -2,12 +2,15 @@
  *Author: Lawrence Milne .AKA. qawse3dr*/
 
 #include <stdarg.h>
+#include "Array.h"
+#include "LinkedList.h"
 
-#typedef struct String{
+typedef struct String{
   char* data;
   long length;
 }string_struct;
-#typedef String string_struct*
+
+typedef string_struct* String;
 
 /*Creates a string from a char*
  *@param str the string to be turned into the String struct*
@@ -55,7 +58,7 @@ String copyString(String string);
 
 /*removes all whiteSpaces newlines and tabs from both ends
  *@param string to be edited*/
-String trim(String string);
+void trim(String string);
 
 /*gets the character at an index index.
  *@param string the string being indexed
@@ -112,14 +115,14 @@ long getStringLength(String string);
 /*returns it a string ends with a sufix
  *@param string being searched
  *@param suffix the value being searched for*/
-int stringEndsWith(String string, string sufix);
+int stringEndsWith(String string, String sufix);
 int stringEndsWithC(String string, char* sufix);
 
 /*returns it a string starts with a sufix
  *@param string being searched
  *@param prefix the value being searched for*/
 int stringStartsWith(String string, String prefix);
-int stringStartsWith(String string, char* prefix);
+int stringStartsWithC(String string, char* prefix);
 
 /*replaces a character with a new character
  *@param string hhaving characters replaced
