@@ -91,11 +91,13 @@ int stringContainsC(String string, char* search);
 int stringContainsChar(String string,char search);
 
 /*contains as many string as your want to one string\
+ *@param how many strings are being concated
  *@param string the string being concated too
- *@param ... the strings being added to it*/
-void stringcat(String string, ...); //String
-void stringcatC(String string, ...); //char*
-void stringcatChar(String string, ...); //char
+ *@param ... the strings being added to it
+ */
+void stringcat(int strCount, String string, String stringArgs, ...); //String
+void stringcatC(int strCount, String string, char* stringArgs, ...); //char*
+void stringcatChar(int strCount, String string, char charArgs, ...); //char
 
 /*converts a file to a string returns void it it fails
  *@param fileName name of the file

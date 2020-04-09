@@ -206,16 +206,85 @@ int stringContainsChar(String string,char search){
   return contains;
 }
 
-/*contains as many string as your want to one string\
+/*contains as many string as your want to one string
+ *@param strCount how many strings are being concated must be greater than 2
  *@param string the string being concated too
  *@param ... the strings being added to it*/
-void stringcat(String string, ...){ //String
+void stringcat(int strCount, String string, String stringArgs, ...){ //String
+  if(!string || charCount < 1){
+    return;
+  }
+
+  //appends each string
+  va_list ap;
+  va_start(ap,stringArgs);
+  for(int i = 0; i < strCount; i++){
+    //grabs string from function
+    stringArgs = va_arg(ap, String);
+
+    //alloc enough space for new string length
+    string->data = realloc(string->data,string->length + stringArgs->length + 1);
+
+    //want to use j outside of the loop for placing null terminator
+    int j;
+    for(j = string->length; j < string->length + stringArgs->length; j++){
+      string->data[j] = stringArgs->data[j - string->length];
+    }
+    string->data[j] = '\0';
+    string->length += stringArgs->length;
+  }
+  va_end(ap);
 
 }
-void stringcatC(String string, ...){ //char*
-}
-void stringcatChar(String string, ...){ //char
+void stringcatC(int strCount, String string, String stringArgs, ...){ //char*
+  if(!string || charCount < 1){
+    return;
+  }
+  //the new length of the string
+  long stringArgsLength;
 
+  //appends each string
+  va_list ap;
+  va_start(ap,stringArgs);
+  for(int i = 0; i < strCount; i++){
+    //grabs string from function
+    stringArgs = va_arg(ap, char *);
+    stringArgsLength = strlen(stringArgs);
+
+    //alloc enough space for new string length
+    string->data = realloc(string->data,string->length + stringArgsLength + 1);
+
+    //want to use j outside of the loop for placing null terminator
+    int j;
+    for(j = string->length; j < string->length + stringArgsLength; j++){
+      string->data[j] = stringArgs->data[j - string->length];
+    }
+    string->data[j] = '\0';
+    string->length += stringArgsLength;
+  }
+  va_end(ap);
+}
+void stringcatChar(int charCount, String string, char charArgs, ...){ //char
+  if(!string || charCount < 1){
+    return;
+  }
+  //appends each string
+  va_list ap;
+  va_start(ap,charArgs);
+
+  //alloc enough space for new string length
+  string->data = realloc(string->data,string->length + charCount + 1);
+
+  for(int i = 0; i < charCount; i++){
+
+    //grabs char from function
+    charArgs = va_arg(ap, char);
+
+    //add char
+    string->data[string->length] = charArgs;
+    string->data[++string->length] = '\0';
+  }
+  va_end(ap);
 }
 /*converts a file to a string returns void it it fails
  *@param fileName name of the file
@@ -231,7 +300,7 @@ String fileToString(String fileName){
     char c;
     //copies to string
     while((c = getc(fp)) != '\0'){
-      stringcatChar(fileString,c);
+      stringcatChar(1,fileString,c);
     }
   }
   return fileString;
@@ -246,16 +315,29 @@ long getStringLength(String string);
  *@param string being searched
  *@param suffix the value being searched for*/
 int stringEndsWith(String string, String sufix){
-  if(!string && !suffix){
+  if(!string || !sufix || string->length < sufix->length){
     fprintf(stderr,"stringEndsWith invalid input.\n");
     return 0;
   }
-
+  //assume true till a contradiction is found
+  int endsWith = 1;
+  for(int i = 0; i > sufix->length; i--){
+    if(charAt(string,string->length-1-i) != charAt(sufix,sufix->length-1-i)){
+      endsWith = 0;
+      break;
+    }
+  }
+  return endsWith;
 }
 int stringEndsWithC(String string, char* sufix){
-
+  //a wraper for stringContains
+  String searchString = createString(search);
+  int endsWith = stringContains(string,searchString);
+  freeString(searchString);
+  return endsWith;
 }
 
+//TODO convert to strings
 /*returns it a string starts with a sufix
  *@param string being searched
  *@param prefix the value being searched for*/
