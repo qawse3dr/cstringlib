@@ -12,6 +12,88 @@
 #include <string.h>
 #include "String.h"
 
+/**These are used for string search of boyerMoore
+ *static as they should not be used by the user*/
+/**Creates a shift table for a given pattern
+ *@param key the given pattern in which the table will be created from
+ *@return the created table*/
+static Array* createBadShift(String key){
+  //sets all the letters to the length of key
+  //then itterate though changing all the values based on ascii value
+  Array* table = createArray();
+  int* value;
+  int keyLength = key->length;
+  for(int i = 0; i < 128; i++){
+    value = malloc(sizeof(int));
+    *value = keyLength;
+    arrayPush(table,value);
+  }
+
+  //sets new value based on ascii
+  for(int i = 0; i < keyLength-1 ;i++){
+    *((int*)arrayGet(table,charAt(key,i))) = keyLength -i -1;
+  }
+
+  return table;
+}
+/**is a strcmp that also stop checking after the second string ends
+  *@param string the string being searched
+  *@param key the string being cmpared
+  *@return int 0 if true 1 if false*/
+static int searchString(char* string,char* key){
+    int keyLength = strlen(key);
+    for(int i=0; i < keyLength; i++){
+      if(string[i] != key[i]){
+        return 1;
+      }
+    }
+    return 0;
+}
+/**Max function*/
+static int max(int x, int y){
+    return (x > y) ? x : y;
+}
+/**creates a goodshift tabel for the boyer Moore algo
+ *@param key the string that the function will be based off of
+ *@return the table*/
+static Array* createGoodShift(String key){
+    int keyLength = key->length;
+
+    //holds the current suffix
+    String suffix = createString("");
+    //array that holds the shift table
+    Array* table = createArray();
+
+    //holds the values that go into the array
+    //array starts at index 1. so adding a dummy var to fill inux 0;
+    int* value = malloc(sizeof(int));
+    *value = keyLength;
+    arrayPush(table,value);
+
+    //finds shift value for k lengths
+    for(int i = 0; i < keyLength-1; i++){
+        value = malloc(sizeof(int));
+        *value = *(int*)arrayGet(table,i);
+        //gets suffix
+        setStringC(suffix,&(getString(key)[keyLength -  i-1]));
+
+        //checks if a match is found would custom strcmp
+        for(int j = 0; j < suffix->length; j++){
+          if(searchString(getString(key),&getString(suffix)[suffix->length-1-j]) == 0){
+            *value = keyLength - j -1;
+          }
+        }
+        for(int j = 0; j < keyLength-suffix->length; j++ ){
+            if(searchString(&(getString(key)[j]),getString(suffix)) == 0){ // match
+              *value = keyLength - j-suffix->length;
+            }
+        }
+        arrayPush(table,value);
+    }
+    freeString(suffix);
+    return table;
+}
+
 /*Creates a string from a char*
  *@param str the string to be turned into the String struct*
  *@return String the newly malloced string2*/
@@ -46,6 +128,19 @@ char* getString(String string){
   return string->data;
 }
 
+/*sets the new value of a string
+ *@param string the current string
+ *@param what the value of the new string is*/
+void setString(String string, String new){
+  string->length = new->length;
+  string->data = realloc(string->data,new->length+1);
+  strcpy(string->data,new->data);
+}
+void setStringC(String string, char* new){
+  string->length = strlen(new);
+  string->data = realloc(string->data,string->length+1);
+  strcpy(string->data,new);
+}
 /*splits a string by a delimiter or mutiple delimiter
  *@param string the string that will be split
  *@param delimiter the characters that will be split by
@@ -167,7 +262,45 @@ int stringcmpC(String string1, char* string2){
  *@param search the string being searched for
  *@return how many instances there is
 */
-int countString(String string,String search);
+int countString(String string,String search){
+  //takes the key and creates the shift table
+  Array* badTable = createBadShift(search);
+  Array* goodTable = createGoodShift(search);
+
+  //boyerMooreAlgo
+  int found = 0;
+  //find lengths out here so it isnt calculated ever itterations
+  int keyLength = search->length;
+  int stringLength = string->length;
+
+  //loop var
+  int k=0;
+  //how much it should get shifted over
+  int shiftAmount;
+
+  for(int i = keyLength-1; i < stringLength; i+=shiftAmount){
+
+    k = 0;
+    //checks for matching index
+    while(k < keyLength && charAt(search,keyLength-k-1) == charAt(string,i-k)) k++;
+    if(k == keyLength) {
+      found++;
+      shiftAmount = keyLength;
+    }else if( k == 0){
+
+        shiftAmount = *(int*)arrayGet(badTable,(int)charAt(string,i));
+    } else{
+
+        shiftAmount = max(max(*(int*)arrayGet(badTable,(int)charAt(string,i)) - k,1)
+                                          ,*(int*)arrayGet(goodTable,k));
+    }
+  }
+
+  //free tables
+  freeArray(badTable,genericFree);
+  freeArray(goodTable,genericFree);
+  return found;
+}
 int countStringC(String string, char* search){
   if(!string && !string->data && !search){
     fprintf(stderr,"countStringC invalid input.\n");
@@ -185,7 +318,44 @@ int countStringC(String string, char* search){
  *@return 1 if it contains the string 0 if it doesnt
  */
 int stringContains(String string,String search){
+  //takes the key and creates the shift table
+  Array* badTable = createBadShift(search);
+  Array* goodTable = createGoodShift(search);
 
+  //boyerMooreAlgo
+  int found = 0;
+  //find lengths out here so it isnt calculated ever itterations
+  int keyLength = search->length;
+  int stringLength = string->length;
+
+  //loop var
+  int k=0;
+  //how much it should get shifted over
+  int shiftAmount;
+
+  for(int i = keyLength-1; i < stringLength; i+=shiftAmount){
+
+    k = 0;
+    //checks for matching index
+    while(k < keyLength && charAt(search,keyLength-k-1) == charAt(string,i-k)) k++;
+    if(k == keyLength) {
+      found++;
+      break;
+      shiftAmount = keyLength;
+    }else if( k == 0){
+
+        shiftAmount = *(int*)arrayGet(badTable,(int)charAt(string,i));
+    } else{
+
+        shiftAmount = max(max(*(int*)arrayGet(badTable,(int)charAt(string,i)) - k,1)
+                                          ,*(int*)arrayGet(goodTable,k));
+    }
+  }
+
+  //free tables
+  freeArray(badTable,genericFree);
+  freeArray(goodTable,genericFree);
+  return found;
 }
 int stringContainsC(String string, char* search){
   if(!string && !string->data && !search){

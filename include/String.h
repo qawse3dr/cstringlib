@@ -30,6 +30,12 @@ void freeStringContainer(String string);
  *@return char* the strings data*/
 char* getString(String string);
 
+/*sets the new value of a string
+ *@param string the current string
+ *@param what the value of the new string is*/
+void setString(String string, String new);
+void setStringC(String string, char* new);
+
 /*splits a string by a delimiter or mutiple delimiter
  *@param string the string that will be split
  *@param delimiter the characters that will be split by
