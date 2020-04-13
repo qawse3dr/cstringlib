@@ -555,8 +555,10 @@ long getStringLength(String string);
  *@param string being searched
  *@param suffix the value being searched for*/
 int stringEndsWith(String string, String sufix){
-  if(!string || !sufix || string->length < sufix->length){
+  if(!string || !sufix){
     fprintf(stderr,"stringEndsWith invalid input.\n");
+    return 0;
+  } else if(string->length < sufix->length){
     return 0;
   }
   //assume true till a contradiction is found
@@ -570,7 +572,7 @@ int stringEndsWith(String string, String sufix){
   return endsWith;
 }
 int stringEndsWithC(String string, char* sufix){
-  //a wraper for stringContains
+  //a wraper for stringEndsWith
   String searchString = createString(sufix);
   int endsWith = stringEndsWith(string,searchString);
   freeString(searchString);
@@ -581,19 +583,74 @@ int stringEndsWithC(String string, char* sufix){
 /*returns it a string starts with a sufix
  *@param string being searched
  *@param prefix the value being searched for*/
-int stringStartsWith(String string, String prefix);
-int stringStartsWithC(String string, char* prefix);
+int stringStartsWith(String string, String prefix){
+  if(!string || !prefix){
+    fprintf(stderr,"stringStartsWith invalid input.\n");
+    return 0;
+  } else if(string->length < prefix->length){
+    return 0;
+  }
+
+  int startsWith = 1;
+  //proof by contradiction
+  for(int i = 0; i < prefix->length; i++){
+    if(charAt(string,i) != charAt(prefix,i)){
+      startsWith = 0;
+      break;
+    }
+  }
+
+  return startsWith;
+}
+int stringStartsWithC(String string, char* prefix){
+  //a wraper for stringEndsWith
+  String searchString = createString(prefix);
+  int startsWith = stringStartsWith(string,searchString);
+  freeString(searchString);
+  return startsWith;
+}
 
 /*replaces a character with a new character
  *@param string hhaving characters replaced
  *@param current the value being searched for
  *@param new the new value
  *@return how many have gotten replaced*/
-int stringReplace(String string, char current, char new){
+int stringReplace(String string, String current, String new){
   if(!string){
-    fprintf(stderr,"stringReplace invlaid input\n");
+    fprintf(stderr,"stringReplace invalid input\n");
     return 0;
   }
+  //how many strings were replaced
+  int replaced = 0
+  //string that will be returned
+  String newString = createString("");
+  //todo might change to boyermoore but unsure
+  for(int i = 0; i < string->length; i++){
+    //match found
+    if(stringSearch(*(string->data[i]),current) == 0){
+      i+=current->length-1;
+      //concats new string
+      stringcat(1,newString,new);
+      replaced++;
+    //copy charover
+    } else{
+      stringcatChar(1,newString,charAt(string,i));
+    }
+  }
+  free(string->data);
+  string->data = newString->data;
+  string->length = newString->length;
+  freeStringContainer(newString);
+  return replaced;
+}
+int stringReplaceC(String string,char* current, char* new){
+  //a wraper for stringContains
+  String currentString = createString(current);
+  String newString = createString(new)
+  int replaced = stringReplace(string,currentString,newString);
+  freeString(currentString);
+  freeString(newString);
+  return replaced;
 }
 
 /*converstion between types

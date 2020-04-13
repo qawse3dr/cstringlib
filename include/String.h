@@ -136,6 +136,7 @@ int stringStartsWithC(String string, char* prefix);
  *@param new the new value
  *@return how many have gotten replaced*/
 int stringReplace(String string, char current, char new);
+int stringReplaceC(String string,char* current, char* new);
 
 /*converstion between types
  *@param value the value to be converted
