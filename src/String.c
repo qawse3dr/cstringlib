@@ -20,7 +20,7 @@
 static Array* createBadShift(String key){
   //sets all the letters to the length of key
   //then itterate though changing all the values based on ascii value
-  Array* table = createArray();
+  Array* table = createArray(genericFree);
   int* value;
   int keyLength = key->length;
   for(int i = 0; i < 128; i++){
@@ -62,7 +62,7 @@ static Array* createGoodShift(String key){
     //holds the current suffix
     String suffix = createString("");
     //array that holds the shift table
-    Array* table = createArray();
+    Array* table = createArray(genericFree);
 
     //holds the values that go into the array
     //array starts at index 1. so adding a dummy var to fill inux 0;
@@ -145,15 +145,80 @@ void setStringC(String string, char* new){
  *@param string the string that will be split
  *@param delimiter the characters that will be split by
  *@return An Array of the string*/
-Array* splitToArray(String string, String delimiter);
-Array* splitToArrayC(String string, char* delimiter);
+Array* splitToArray(String string, String delimiter){
+  if(!string || !string->data || !delimiter || !delimiter->data){
+    return NULL;
+  }
+  Array* array = createArray((void(*)(void*))freeString);
+  String arrayString = createString("");
+  int delimiterFound = 0;
+  for(int i = 0; i < string->length; i++){
+    for(int j = 0; j < delimiter->length; j++){
+      if(charAt(string,i) == charAt(delimiter,j)){
+        delimiterFound = 1;
+        break;
+      }
+    }
+    //split here
+    if(delimiterFound || charAt(string,i) == '\0'){
+      delimiterFound = 0;
+      arrayPush(array,arrayString);
+      arrayString = createString("");
+    } else{ //add to string
+      stringcatChar(1,arrayString,charAt(string,i));
+    }
+  }
+}
+Array* splitToArrayC(String string, char* delimiter){
+  if(!string && !string->data && !delimiter){
+    fprintf(stderr,"splitToArrayC invalid input.\n");
+  }
+  //a wraper for splitToArray
+  String delimiterString = createString(delimiter);
+  Array* splitArray = splitToArray(string,delimiterString);
+  freeString(delimiterString);
+  return splitArray;
+}
 
 /*splits a string by a delimiter or mutiple delimiter
  *@param string the string that will be split
  *@param delimiter the characters that will be split by
  *@return A list of the string*/
-List* splitToList(String string, String delimiter);
-List* splitToListC(String string, char* delimiter);
+List* splitToList(String string, String delimiter){
+  if(!string || !string->data || !delimiter || !delimiter->data){
+    return NULL;
+  }
+  List* list = createList((void(*)(void*))freeString);
+  String listString = createString("");
+  int delimiterFound = 0;
+  for(int i = 0; i < string->length; i++){
+    for(int j = 0; j < delimiter->length; j++){
+      if(charAt(string,i) == charAt(delimiter,j)){
+        delimiterFound = 1;
+        break;
+      }
+    }
+    //split here
+    if(delimiterFound || charAt(string,i) == '\0'){
+      delimiterFound = 0;
+      insertBack(list,listString);
+      listString = createString("");
+    } else{ //add to string
+      stringcatChar(1,listString,charAt(string,i));
+    }
+  }
+}
+
+List* splitToListC(String string, char* delimiter){
+  if(!string && !string->data && !delimiter){
+    fprintf(stderr,"splitToListC invalid input.\n");
+  }
+  //a wraper for splitToArray
+  String delimiterString = createString(delimiter);
+  List* splitList = splitToList(string,delimiterString);
+  freeString(delimiterString);
+  return splitList;
+}
 
 /*copys a substring from a string
  *@param string the string that will be copied from
@@ -297,8 +362,8 @@ int countString(String string,String search){
   }
 
   //free tables
-  freeArray(badTable,genericFree);
-  freeArray(goodTable,genericFree);
+  freeArray(badTable);
+  freeArray(goodTable);
   return found;
 }
 int countStringC(String string, char* search){
@@ -353,8 +418,8 @@ int stringContains(String string,String search){
   }
 
   //free tables
-  freeArray(badTable,genericFree);
-  freeArray(goodTable,genericFree);
+  freeArray(badTable);
+  freeArray(goodTable);
   return found;
 }
 int stringContainsC(String string, char* search){
