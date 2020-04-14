@@ -289,7 +289,7 @@ void trim(String string){
  *@return char the character at string[index]
  */
 char charAt(String string, long index){
-  if(!string && index >= 0 && index <= string->length-1){
+  if(!string || index < 0 || index > string->length){
     fprintf(stderr,"charAt invalid input.\n");
     return '\0';
   }
@@ -309,14 +309,14 @@ void setCharAt(String string,long index,char value){
 int stringcmp(String string1, String string2){
   if(!string1 || !string2) {
     fprintf(stderr,"stringcmp invalid input.\n");
-    return 0;
+    return 1;
   }
   return strcmp(string1->data,string2->data);
 }
 int stringcmpC(String string1, char* string2){
   if(!string1 || !string2) {
     fprintf(stderr,"stringcmp invalid input.\n");
-    return 0;
+    return 1;
   }
   return strcmp(string1->data,string2);
 }
@@ -621,13 +621,13 @@ int stringReplace(String string, String current, String new){
     return 0;
   }
   //how many strings were replaced
-  int replaced = 0
+  int replaced = 0;
   //string that will be returned
   String newString = createString("");
   //todo might change to boyermoore but unsure
   for(int i = 0; i < string->length; i++){
     //match found
-    if(stringSearch(*(string->data[i]),current) == 0){
+    if(searchString(&(string->data[i]),current->data) == 0){
       i+=current->length-1;
       //concats new string
       stringcat(1,newString,new);
@@ -646,7 +646,7 @@ int stringReplace(String string, String current, String new){
 int stringReplaceC(String string,char* current, char* new){
   //a wraper for stringContains
   String currentString = createString(current);
-  String newString = createString(new)
+  String newString = createString(new);
   int replaced = stringReplace(string,currentString,newString);
   freeString(currentString);
   freeString(newString);

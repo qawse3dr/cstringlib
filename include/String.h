@@ -112,6 +112,7 @@ void stringcatChar(int strCount, String string, char charArgs, ...); //char
  *@param fileName name of the file
  *@return the file as a string*/
 String fileToString(String fileName);
+//todo stringtoFile
 
 /*gets the length of a string
  *@param string the string length will be retrived from
@@ -135,7 +136,7 @@ int stringStartsWithC(String string, char* prefix);
  *@param current the value being searched for
  *@param new the new value
  *@return how many have gotten replaced*/
-int stringReplace(String string, char current, char new);
+int stringReplace(String string, String current, String new);
 int stringReplaceC(String string,char* current, char* new);
 
 /*converstion between types
