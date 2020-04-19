@@ -98,7 +98,10 @@ static Array* createGoodShift(String key){
  *@param str the string to be turned into the String struct*
  *@return String the newly malloced string2*/
 String createString(const char* str){
-
+  //not a valid string
+  if(!str){
+    return NULL;
+  }
   //create string
   String string = malloc(sizeof(string_struct));
   string->length = strlen(str);
@@ -111,20 +114,28 @@ String createString(const char* str){
 /*Frees the string
  *@param string the string to be freed*/
 void freeString(String string){
-  free(string->data);
-  free(string);
+  if(string){
+    if(string->data)free(string->data);
+    free(string);
+
+  }
 }
 
 /*Frees the container without freeing the string content
  *@param string the string container to be freed*/
 void freeStringContainer(String string){
-  free(string);
+  if(string){
+    free(string);
+  }
 }
 
 /*gets the string data
  *@param string
  *@return char* the strings data*/
 char* getString(String string){
+  if(!string){
+    return NULL;
+  }
   return string->data;
 }
 
@@ -162,16 +173,22 @@ Array* splitToArray(String string, String delimiter){
     //split here
     if(delimiterFound || charAt(string,i) == '\0'){
       delimiterFound = 0;
-      arrayPush(array,arrayString);
-      arrayString = createString("");
+      if(stringcmpC(arrayString,"") !=0){
+        arrayPush(array,arrayString);
+        arrayString = createString("");
+      }
     } else{ //add to string
       stringcatChar(1,arrayString,charAt(string,i));
     }
   }
+  printf("%s\n",getString(arrayString));
+  freeString(arrayString);
+  return array;
 }
 Array* splitToArrayC(String string, char* delimiter){
-  if(!string && !string->data && !delimiter){
+  if(!string || !string->data || !delimiter){
     fprintf(stderr,"splitToArrayC invalid input.\n");
+    return NULL;
   }
   //a wraper for splitToArray
   String delimiterString = createString(delimiter);
@@ -201,17 +218,22 @@ List* splitToList(String string, String delimiter){
     //split here
     if(delimiterFound || charAt(string,i) == '\0'){
       delimiterFound = 0;
-      insertBack(list,listString);
-      listString = createString("");
+      if(stringcmpC(listString,"") !=0){
+        insertBack(list,listString);
+        listString = createString("");
+      }
     } else{ //add to string
       stringcatChar(1,listString,charAt(string,i));
     }
   }
+  freeString(listString);
+  return list;
 }
 
 List* splitToListC(String string, char* delimiter){
-  if(!string && !string->data && !delimiter){
+  if(!string || !string->data || !delimiter){
     fprintf(stderr,"splitToListC invalid input.\n");
+    return NULL;
   }
   //a wraper for splitToArray
   String delimiterString = createString(delimiter);
@@ -261,26 +283,30 @@ void trim(String string){
 
   //the lower and upper bound of the trimmed string
   int lower = 0;
-  int upper = string->length;
+  int upper = string->length-1;
   //trim front
   //todo fix memleak
   String whiteSpace = createString("\n\t ");
-  for(int i = lower; i < string->length && !stringContainsChar(whiteSpace,charAt(string,i)); i++){
+  for(int i = 0; i < string->length && stringContainsChar(whiteSpace,charAt(string,i)); i++){
     lower++;
   }
   //trim back
-  for(int i = upper; i >= 0 && !stringContainsChar(whiteSpace,charAt(string,i)); i--){
+  for(int i = string->length-1; i >= 0 && stringContainsChar(whiteSpace,charAt(string,i)); i--){
     upper--;
   }
   //copies data
+
   String trimmedString = subString(string,lower,upper);
 
   freeString(whiteSpace);
   //frees old data
   free(string->data);
   //new length and data
-  string->length = trimmedString->length - lower - (string->length-upper);
+  string->length = trimmedString->length;
   string->data = trimmedString->data;
+
+  //frees trimmedString container
+  freeStringContainer(trimmedString);
 }
 
 /*gets the character at an index index.
@@ -328,6 +354,9 @@ int stringcmpC(String string1, char* string2){
  *@return how many instances there is
 */
 int countString(String string,String search){
+  if(!string || !search){
+    return 0;
+  }
   //takes the key and creates the shift table
   Array* badTable = createBadShift(search);
   Array* goodTable = createGoodShift(search);
@@ -367,8 +396,9 @@ int countString(String string,String search){
   return found;
 }
 int countStringC(String string, char* search){
-  if(!string && !string->data && !search){
+  if(!string || !string->data || !search){
     fprintf(stderr,"countStringC invalid input.\n");
+    return 0;
   }
   //a wraper for stringContains
   String searchString = createString(search);
@@ -383,6 +413,9 @@ int countStringC(String string, char* search){
  *@return 1 if it contains the string 0 if it doesnt
  */
 int stringContains(String string,String search){
+  if(!string || !search){
+    return 0;
+  }
   //takes the key and creates the shift table
   Array* badTable = createBadShift(search);
   Array* goodTable = createGoodShift(search);
@@ -423,8 +456,9 @@ int stringContains(String string,String search){
   return found;
 }
 int stringContainsC(String string, char* search){
-  if(!string && !string->data && !search){
+  if(!string || !string->data || !search){
     fprintf(stderr,"StringContainsC invalid input.\n");
+    return 0;
   }
   //a wraper for stringContains
   String searchString = createString(search);
@@ -435,6 +469,7 @@ int stringContainsC(String string, char* search){
 int stringContainsChar(String string,char search){
   if(!string || !string->data){
     fprintf(stderr,"StringContainsChar invalid input.\n");
+    return 0;
   }
   int contains = 0;
   for(int i = 0; i < string->length; i++){
@@ -459,8 +494,6 @@ void stringcat(int strCount, String string, String stringArgs, ...){ //String
   va_list ap;
   va_start(ap,stringArgs);
   for(int i = 0; i < strCount; i++){
-    //grabs string from function
-    stringArgs = va_arg(ap, String);
 
     //alloc enough space for new string length
     string->data = realloc(string->data,string->length + stringArgs->length + 1);
@@ -472,6 +505,9 @@ void stringcat(int strCount, String string, String stringArgs, ...){ //String
     }
     string->data[j] = '\0';
     string->length += stringArgs->length;
+
+    //grabs string from function
+    stringArgs = va_arg(ap, String);
   }
   va_end(ap);
 
@@ -487,8 +523,7 @@ void stringcatC(int strCount, String string, char* stringArgs, ...){ //char*
   va_list ap;
   va_start(ap,stringArgs);
   for(int i = 0; i < strCount; i++){
-    //grabs string from function
-    stringArgs = va_arg(ap, char *);
+
     stringArgsLength = strlen(stringArgs);
 
     //alloc enough space for new string length
@@ -501,6 +536,9 @@ void stringcatC(int strCount, String string, char* stringArgs, ...){ //char*
     }
     string->data[j] = '\0';
     string->length += stringArgsLength;
+
+    //grabs string from function
+    stringArgs = va_arg(ap, char *);
   }
   va_end(ap);
 }
@@ -517,12 +555,13 @@ void stringcatChar(int charCount, String string, char charArgs, ...){ //char
 
   for(int i = 0; i < charCount; i++){
 
-    //grabs char from function
-    charArgs = va_arg(ap, int);
 
     //add char
     string->data[string->length] = charArgs;
     string->data[++string->length] = '\0';
+    //grabs char from function
+    charArgs = va_arg(ap, int);
+
   }
   va_end(ap);
 }
@@ -539,9 +578,10 @@ String fileToString(String fileName){
     fileString = createString("");
     char c;
     //copies to string
-    while((c = getc(fp)) != '\0'){
+    while((c = getc(fp)) != EOF){
       stringcatChar(1,fileString,c);
     }
+    fclose(fp);
   }
   return fileString;
 }
@@ -572,6 +612,7 @@ int stringEndsWith(String string, String sufix){
   return endsWith;
 }
 int stringEndsWithC(String string, char* sufix){
+
   //a wraper for stringEndsWith
   String searchString = createString(sufix);
   int endsWith = stringEndsWith(string,searchString);
@@ -611,7 +652,7 @@ int stringStartsWithC(String string, char* prefix){
 }
 
 /*replaces a character with a new character
- *@param string hhaving characters replaced
+ *@param string having characters replaced
  *@param current the value being searched for
  *@param new the new value
  *@return how many have gotten replaced*/
