@@ -41,7 +41,7 @@ memtest: build $(BIN)test.o
 	$(CC) $(CFLAGS) $(BIN)test.o -L$(BUILD) -lcstring -o $(BUILD)$@
 
 	#run program
-	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(BUILD) valgrind $(BUILD)memtest
+	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(BUILD) valgrind  --leak-check=full $(BUILD)memtest
 
 $(BIN)test.o: $(TEST)stringTest.c
 	$(CC) $(CFLAGS) -c $(TEST)stringTest.c -o $@
