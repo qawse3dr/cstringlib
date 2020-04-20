@@ -657,8 +657,12 @@ int stringStartsWithC(String string, char* prefix){
  *@param new the new value
  *@return how many have gotten replaced*/
 int stringReplace(String string, String current, String new){
-  if(!string){
+  if(!string || !current || !new){
     fprintf(stderr,"stringReplace invalid input\n");
+    return 0;
+  }
+  //nothing to convert
+  if(stringcmpC(current,"") == 0){
     return 0;
   }
   //how many strings were replaced
