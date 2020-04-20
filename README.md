@@ -1,16 +1,19 @@
 # cstringlib
 A basic c string lib that compiles to an system lib for linux
 
-## build
+## Build
 ```bash
 $make build
 ```
 
-## install
+## Install
 ```bash
 #make install
 ```
-
+## Usage
+```bash
+#gcc programName.c -lcstring
+```
 ## License
 Anyone is welcome to use this code or change it to their wish
 To see the license type
