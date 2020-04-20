@@ -19,7 +19,8 @@ build : $(OBJ)
 install: build
 	cp $(BUILD)libcstring.so /usr/lib/
 	cp $(INCLUDE)String.h /usr/include/cstring.h
-
+	cp $(INCLUDE)Array.h /usr/include/
+	cp $(INCLUDE)LinkedList.h /usr/include/
 $(BIN)String.o: $(SRC)String.c $(INCLUDE)String.h
 	$(CC) $(CFLAGS) -fpic -c $(SRC)String.c -o $@
 $(BIN)Array.o: $(SRC)Array.c $(INCLUDE)Array.h
