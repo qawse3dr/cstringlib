@@ -250,8 +250,6 @@ int main(){
 
   String delimiter = createString("\n\t ");
   Array* array = splitToArray(fileString,delimiter);
-  printf("word Count == %d\n",array->length);
-  printf("word at 0 == %s\n",getString(arrayGet(array,1)));
   test("splitToArray ArrayLength", array->length == 98);
   test("splitToArray index 0",stringcmpC(arrayGet(array,0),"Lorem") == 0);
   test("splitToArray index 97",stringcmpC(arrayGet(array,97),"Persius") == 0);
@@ -269,13 +267,58 @@ int main(){
   test("splitToArrayC invalid args 3",!splitToArrayC(NULL,"string"));
   freeArray(array);
 
+  //split to list
   List* list = splitToList(fileString,delimiter);
-  printf("listSize %d\n",list->length);
+  test("SplitToList length",list->length == 98);
+  test("SplitToList head",stringcmpC(getData(getHead(list)),"Lorem") == 0);
+  test("SplitToList tail",stringcmpC(getData(getTail(list)),"Persius") == 0);
+  test("SplitToList invalid args 1",!splitToList(NULL,NULL));
+  test("SplitToList invalid args 2",!splitToList(fileString,NULL));
+  test("SplitToList invalid args 3",!splitToList(NULL,delimiter));
   freeList(list);
 
-  //todo finish testing list
-  
-  //todo test replace
+  //split to listC
+  list = splitToListC(fileString,"\n\t ");
+  test("SplitToList length",list->length == 98);
+  test("SplitToList head",stringcmpC(getData(getHead(list)),"Lorem") == 0);
+  test("SplitToList tail",stringcmpC(getData(getTail(list)),"Persius") == 0);
+  test("SplitToList invalid args 1",!splitToListC(NULL,NULL));
+  test("SplitToList invalid args 2",!splitToListC(fileString,NULL));
+  test("SplitToList invalid args 3",!splitToListC(NULL,"string"));
+  freeList(list);
+
+  //test replace
+  setStringC(fileString,"This is a test string a apple is nice");
+  setStringC(hello,"apple");
+  setStringC(bye,"potato");
+  stringReplace(fileString,hello,bye);
+  test("test stringReplace",stringcmpC(fileString,"This is a test string a potato is nice") == 0);
+  test("test stringReplace strlength", fileString->length == 38);
+  test("test stringRepalce with invalid args if it doesn't crash it passes",1);
+  stringReplace(NULL,NULL,NULL);
+  stringReplace(fileString,NULL,NULL);
+  stringReplace(NULL,hello,NULL);
+  stringReplace(NULL,NULL,bye);
+  stringReplace(fileString,hello,NULL);
+  stringReplace(fileString,NULL,bye);
+  stringReplace(NULL,hello,bye);
+
+  //test replaceC
+  setStringC(fileString,"This is a test string a apple is nice");
+  stringReplaceC(fileString,"a","");
+  test("test stringReplaceC",stringcmpC(fileString,"This is  test string  pple is nice") == 0);
+  test("test stringReplaceC strlength", fileString->length == 34);
+
+  test("test stringReplaceC with invalid args if it doesn't crash it passes",1);
+  stringReplaceC(NULL,NULL,NULL);
+  stringReplaceC(fileString,NULL,NULL);
+  stringReplaceC(NULL,"hello",NULL);
+  stringReplaceC(NULL,NULL,"bye");
+  stringReplaceC(fileString,"hello",NULL);
+  stringReplaceC(fileString,NULL,"bye");
+  stringReplaceC(NULL,"hello","bye");
+
+
   printf("\nfreeing Strings\n\n");
   freeString(delimiter);
 
